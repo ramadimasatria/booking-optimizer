@@ -1,0 +1,20 @@
+.booking-item {
+  display: inline-block;
+  font-size: 12px;
+  padding: 3px 12px;
+  border-radius: 6px;
+  background: aqua;
+  margin: 6px 3px;
+
+  &__id {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  &__arrow {
+    display: inline-block;
+    width: 20px;
+    padding: 0 6px;
+  }
+}
