@@ -10,7 +10,6 @@ import rawData from '../data.json';
 import './App.scss';
 
 interface AppState {
-  isLoading: boolean,
   original?: Booking[],
   optimized?: Booking[],
   originalRelocations?: number,
@@ -20,25 +19,29 @@ interface AppState {
 const bookingManager = new BookingManager()
 
 class App extends React.Component<{}, AppState> {
+  private refJsonField: any
+
   constructor(props: any) {
     super(props);
 
-    this.state = {
-      isLoading: false
-    }
+    this.state = {}
 
+    this.refJsonField = React.createRef()
     this.optimize = this.optimize.bind(this)
   }
 
   optimize() {
-    this.setState({
-      isLoading: true
-    })
+    const fieldState = this.refJsonField.current.state
+    const jsonData = fieldState.jsObject ? fieldState.jsObject : rawData
 
-    bookingManager.optimize(rawData)
+    try {
+      bookingManager.optimize(jsonData)
+    } catch(e) {
+      alert('Invalid data')
+      return
+    }
 
     this.setState({
-      isLoading: false,
       original: bookingManager.original,
       optimized: bookingManager.optimized,
       originalRelocations: bookingManager.originalRelocations,
@@ -62,10 +65,11 @@ class App extends React.Component<{}, AppState> {
             height='400px'
             theme='light_mitsuketa_tribute'
             width='100%'
+            ref={this.refJsonField}
           />
 
           <p style={{ textAlign: 'center' }}>
-            <button className="button" style={{ marginTop: 18 }} onClick={this.optimize} disabled={state.isLoading}>
+            <button className="button" style={{ marginTop: 18 }} onClick={this.optimize}>
               Optimize!
             </button>
           </p>

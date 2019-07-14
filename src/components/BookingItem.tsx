@@ -12,7 +12,7 @@ export const BookingItem: React.FC<Props> = ({ booking }) => {
     <div className="booking-item">
       <span className="booking-item__id">{ booking.id }</span>
       <span className="booking-item__start">{ booking.start }</span>
-      <span className="booking-item__arrow"><img src={rightArrow} /></span>
+      <span className="booking-item__arrow"><img src={rightArrow} alt='arrow' /></span>
       <span className="booking-item__end">{ booking.end }</span>
     </div>
   )

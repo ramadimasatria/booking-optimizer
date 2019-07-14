@@ -8,7 +8,7 @@ interface Props {
 
 const Separator: React.FC<Props> = (props) => (
   <span className={`separator ${props.relocate && 'separator--relocate'}`} >
-    <img src={rightArrow} />
+    <img src={rightArrow} alt="arrow"/>
   </span>
 )
 

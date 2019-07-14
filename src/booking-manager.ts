@@ -29,9 +29,15 @@ class BookingManager implements BookingManagerInterface {
 
   public optimize(original: Booking[]): void {
     this.original = original
+    this.originalRelocations = 0
 
-    // Assign initial bookingsById & connected data
     this.original.forEach((booking, idx) => {
+      // validate booking data
+      if (!booking.id || !booking.start || !booking.end) {
+        throw(new Error('Invalid data'))
+      }
+
+      // Assign initial bookingsById & connected data
       this.bookingsById[booking.id] = booking
       this.connected[booking.id] = [booking.id]
 
