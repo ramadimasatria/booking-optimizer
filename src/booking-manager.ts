@@ -1,20 +1,18 @@
 import { BookingId, Booking } from './types';
 
-interface BookingGroup {
-  [key: string]: Booking | BookingId[]
-}
-
 interface BookingManagerInterface {
-  originalOrder: Booking[],
-  optimizedOrder: Booking[],
-  relocations?: number,
-  orderBookings: () => void
+  original?: Booking[],
+  optimized?: Booking[],
+  originalRelocations?: number,
+  optimizedRelocations?: number,
+  optimize: (bookings: Booking[]) => void
 }
 
 class BookingManager implements BookingManagerInterface {
-  originalOrder: Booking[]
-  optimizedOrder: Booking[]
-  relocations = 0
+  public original: Booking[] = []
+  public optimized: Booking[] = []
+  public originalRelocations: number = 0
+  public optimizedRelocations: number = 0
 
   private bookingsById: {
     [key: string]: Booking
@@ -29,21 +27,46 @@ class BookingManager implements BookingManagerInterface {
     [key: string]: BookingId[]
   } = {}
 
-  constructor(rawData: Booking[]) {
-    this.originalOrder = rawData
-    this.optimizedOrder = []
+  public optimize(original: Booking[]): void {
+    this.original = original
 
-    // assign initial bookingsById & connected data
-    this.originalOrder.forEach((booking) => {
+    // Assign initial bookingsById & connected data
+    this.original.forEach((booking, idx) => {
       this.bookingsById[booking.id] = booking
       this.connected[booking.id] = [booking.id]
+
+      // count original relocations
+      const next = this.original[idx + 1]
+      if (next && next.start !== booking.end) {
+        this.originalRelocations++
+      }
     })
+
+    // Group bookings by starts & ends, pair them by the most available pairs
+    // repeat until there is no pair availabe
+    this.groupStartsEnds()
+    let pair = this.getMostPair()
+    while (pair) {
+      this.connectByPairKey(pair)
+      this.groupStartsEnds()
+      pair = this.getMostPair()
+    }
+
+    // Construct optimized orders
+    this.optimized = Object.values(this.connected).flat().map(id =>
+      this.getBookingById(id)
+    )
+    this.optimizedRelocations = Object.keys(this.connected).length - 1
   }
 
+  // PRIVATE METHODS
+
+  //
   private getBookingById(id: BookingId): Booking {
     return this.bookingsById[id]
   }
 
+  // Return id, start & end data of connected bookings
   private getConnectedData(id: BookingId): Booking {
     const arr = this.connected[id]
     const start = this.getBookingById(arr[0]).start
@@ -56,6 +79,25 @@ class BookingManager implements BookingManagerInterface {
     }
   }
 
+  // Find most pair available
+  private getMostPair(): number | null {
+    let pair = 0
+    let mostPair = 0
+
+    Object.keys(this.starts).forEach(key => {
+      if (!this.ends[key]) return
+
+      const curPair = Math.min(this.starts[key].length, this.ends[key].length)
+      if (curPair > mostPair) {
+        mostPair = curPair
+        pair = parseInt(key, 10)
+      }
+    })
+
+    return mostPair > 0 ? pair : null
+  }
+
+  // Group bookings by starts & ends
   private groupStartsEnds(): void {
     const starts: {
       [key: string]: BookingId[]
@@ -83,24 +125,8 @@ class BookingManager implements BookingManagerInterface {
     this.ends = ends
   }
 
-  private getMostPair(): number | null {
-    let pair = 0
-    let mostPair = 0
-
-    Object.keys(this.starts).forEach(key => {
-      if (!this.ends[key]) return
-
-      const curPair = Math.min(this.starts[key].length, this.ends[key].length)
-      if (curPair > mostPair) {
-        mostPair = curPair
-        pair = parseInt(key, 10)
-      }
-    })
-
-    return mostPair > 0 ? pair : null
-  }
-
-  private addConnected(ids: BookingId[]): void {
+  // Connect multiple bookings
+  private connectBookings(ids: BookingId[]): void {
     const targetId = ids[0]
     this.connected[targetId] = [
       ...this.connected[targetId],
@@ -113,7 +139,8 @@ class BookingManager implements BookingManagerInterface {
     })
   }
 
-  private connectBookings(pairKey: number): void {
+  //
+  private connectByPairKey(pairKey: number): void {
     let starts = this.starts[pairKey]
     let ends = this.ends[pairKey]
 
@@ -131,7 +158,7 @@ class BookingManager implements BookingManagerInterface {
     // starts: [3, [1, 2]]
     // ends: [4, 5, 6]
     if (commons.length) {
-      this.addConnected(commons)
+      this.connectBookings(commons)
 
       starts = starts.filter(id => !commons.includes(id))
       ends = ends.filter(id => !commons.includes(id))
@@ -145,27 +172,10 @@ class BookingManager implements BookingManagerInterface {
       const startId = starts.shift()
       const endId = ends.shift()
       if (!startId || !endId) break;
-      this.addConnected([endId, startId])
+      this.connectBookings([endId, startId])
     }
-
-    console.log(this.connected)
   }
 
-  public orderBookings(): void {
-    this.groupStartsEnds()
-
-    let pair = this.getMostPair()
-    while (pair) {
-      this.connectBookings(pair)
-      this.groupStartsEnds()
-      pair = this.getMostPair()
-    }
-
-    this.relocations = Object.keys(this.connected).length - 1
-    this.optimizedOrder = Object.values(this.connected).flat().map(id =>
-      this.getBookingById(id)
-    )
-  }
 }
 
 export default BookingManager;

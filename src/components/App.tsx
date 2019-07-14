@@ -6,9 +6,10 @@ import JSONInput from 'react-json-editor-ajrm';
 import './App.scss';
 
 export interface AppProps {
-  originalOrder: Booking[],
-  optimizedOrder: Booking[],
-  relocation: number
+  original: Booking[],
+  optimized: Booking[],
+  originalRelocations: number,
+  optimizedRelocations: number
 }
 
 const App: React.FC<AppProps> = (props) => {
@@ -21,7 +22,7 @@ const App: React.FC<AppProps> = (props) => {
 
         <JSONInput
           id='editor'
-          placeholder={props.originalOrder}
+          placeholder={props.original}
           height='400px'
           theme='light_mitsuketa_tribute'
           width='100%'
@@ -36,16 +37,16 @@ const App: React.FC<AppProps> = (props) => {
 
       <div className="app__section">
         <h3 className="app__subtitle">Original Order</h3>
-        <BookingOrder order={props.originalOrder} />
+        <BookingOrder order={props.original} />
+        <p>Relocations: { props.originalRelocations }</p>
       </div>
 
       <hr className="app__separator" />
 
       <div className="app__section">
         <h3 className="app__subtitle">Optimized Order</h3>
-        <BookingOrder order={props.optimizedOrder} />
-
-        <p>Relocations: { props.relocation }</p>
+        <BookingOrder order={props.optimized} />
+        <p>Relocations: { props.optimizedRelocations }</p>
       </div>
     </div>
   );
