@@ -3,6 +3,7 @@
 ## Prerequisites
 * Node
 * Yarn
+* TypeScript
 
 ## Project Setup
 * Clone repository
